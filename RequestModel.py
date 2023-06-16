@@ -58,7 +58,7 @@ class Response:
 
                 if type(schema.get('enum')) is list:
                     return randomizer.get_random_from_list(schema.get('enum')), \
-                           'string.' + self._get_enum_list(schema.get('enum'))
+                               'string.' + self._get_enum_list(schema.get('enum'))
 
                 return randomizer.get_random_string(), 'string'
 
@@ -68,7 +68,7 @@ class Response:
 
                 if type(schema.get('enum')) is list:
                     return randomizer.get_random_from_list(schema.get('enum')), \
-                           'integer.' + self._get_enum_list(schema.get('enum'))
+                               'integer.' + self._get_enum_list(schema.get('enum'))
 
                 return randomizer.get_random_integer(), 'integer'
 
@@ -78,7 +78,7 @@ class Response:
 
                 if type(schema.get('enum')) is list:
                     return randomizer.get_random_from_list(schema.get('enum')), \
-                           'number.' + self._get_enum_list(schema.get('enum'))
+                               'number.' + self._get_enum_list(schema.get('enum'))
 
                 return randomizer.get_random_number(), 'number'
 
@@ -88,7 +88,7 @@ class Response:
 
                 if type(schema.get('enum')) is list:
                     return randomizer.get_random_from_list(schema.get('enum')), \
-                           'boolean.' + self._get_enum_list(schema.get('enum'))
+                               'boolean.' + self._get_enum_list(schema.get('enum'))
 
                 return randomizer.get_random_boolean(), 'boolean'
 
@@ -100,7 +100,7 @@ class Response:
                     if type(data) is tuple:
                         new_dict[prop_name] = data[0]
                         if pref.meta:
-                            new_dict['@' + prop_name] = data[1]
+                            new_dict[f'@{prop_name}'] = data[1]
                     else:
                         new_dict[prop_name] = data
 
@@ -109,11 +109,12 @@ class Response:
             if schema.get('type') == 'array':
                 size = randomizer.get_random_from_list(pref.list_size)
 
-                items = [self._data_from_schema('items', schema['items'], randomizer, pref) for _ in
-                         range(size)]
-
-                return items
-
+                return [
+                    self._data_from_schema(
+                        'items', schema['items'], randomizer, pref
+                    )
+                    for _ in range(size)
+                ]
         return None
 
     def get_response_body(self, pref: Preference):
