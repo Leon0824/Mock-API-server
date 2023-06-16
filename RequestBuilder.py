@@ -26,29 +26,25 @@ class SwaggerRequestBuilder(BaseRequestBuilder):
         return self._build_reference(data, data, [])
 
     def _build_reference(self, _data, data, references):
-        if type(data) is dict:
-            new_dict = {}
-            for key in data:
-                if key == '$ref':
-                    ref = self._find_schema(_data, data.get(key))
+        if type(data) is not dict:
+            return (
+                [self._build_reference(_data, val, references) for val in data]
+                if type(data) is list
+                else data
+            )
+        new_dict = {}
+        for key in data:
+            if key == '$ref':
+                ref = self._find_schema(_data, data.get(key))
 
-                    # Avoiding cyclic dependency
-                    if data.get(key) in references:
-                        return f"Cyclic dependency error: Cannot reference {data.get(key)} after {' -> '.join(references)}"
+                # Avoiding cyclic dependency
+                if data.get(key) in references:
+                    return f"Cyclic dependency error: Cannot reference {data.get(key)} after {' -> '.join(references)}"
 
-                    new_dict = self._build_reference(_data, ref, references + [data.get(key)])
-                    return new_dict
-                else:
-                    new_dict[key] = self._build_reference(_data, data.get(key), references)
-            return new_dict
-
-        if type(data) is list:
-            new_list = []
-            for val in data:
-                new_list.append(self._build_reference(_data, val, references))
-            return new_list
-
-        return data
+                return self._build_reference(_data, ref, references + [data.get(key)])
+            else:
+                new_dict[key] = self._build_reference(_data, data.get(key), references)
+        return new_dict
 
     @staticmethod
     def _find_schema(_data, ref):
@@ -70,7 +66,7 @@ class SwaggerRequestBuilder(BaseRequestBuilder):
                 if 'parameters' in _child:
                     request.parameters = [parameter['name'] for parameter in _child['parameters']]
                     for param in request.parameters:
-                        path = path.replace('{' + param + '}', '<' + param + '>')
+                        path = path.replace('{' + param + '}', f'<{param}>')
                 request.request_url = path
 
                 if 'responses' in _child:
